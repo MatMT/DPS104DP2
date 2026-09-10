@@ -32,7 +32,20 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permite acceder a la cámara para escanear códigos de barras de los productos."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Permite capturar la ubicación GPS exacta al momento de registrar la auditoría."
+        }
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,
