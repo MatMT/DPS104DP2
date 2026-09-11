@@ -9,11 +9,14 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAudit } from '../../context/AuditContext';
+import { AuditEntry } from '../../types/AuditEntry';
 import { AuditLogItem } from '../../components/AuditLogItem';
+import { UpdateAudioModal } from '../../components/UpdateAudioModal';
 
 export default function AuditLogScreen() {
   const { auditLogs, deleteAuditEntry, clearAuditLogs } = useAudit();
   const [filterType, setFilterType] = useState<string>('ALL');
+  const [selectedAudioEntry, setSelectedAudioEntry] = useState<AuditEntry | null>(null);
 
   const filteredLogs = useMemo(() => {
     if (filterType === 'ALL') return auditLogs;
@@ -147,7 +150,11 @@ export default function AuditLogScreen() {
         data={filteredLogs}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <AuditLogItem item={item} onDelete={deleteAuditEntry} />
+          <AuditLogItem
+            item={item}
+            onDelete={deleteAuditEntry}
+            onEditAudio={(entry) => setSelectedAudioEntry(entry)}
+          />
         )}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
@@ -160,6 +167,13 @@ export default function AuditLogScreen() {
             </Text>
           </View>
         }
+      />
+
+      {/* Modal para agregar o reemplazar nota de voz en registro existente */}
+      <UpdateAudioModal
+        visible={!!selectedAudioEntry}
+        entry={selectedAudioEntry}
+        onClose={() => setSelectedAudioEntry(null)}
       />
     </View>
   );

@@ -13,11 +13,13 @@ import { AuditEntry } from '../types/AuditEntry';
 interface AuditLogItemProps {
   item: AuditEntry;
   onDelete?: (id: string) => void;
+  onEditAudio?: (entry: AuditEntry) => void;
 }
 
 export const AuditLogItem: React.FC<AuditLogItemProps> = ({
   item,
   onDelete,
+  onEditAudio,
 }) => {
   // Configuración del reproductor para la nota de voz si existe
   const player = useAudioPlayer(item.audioNoteUrl || null);
@@ -135,7 +137,7 @@ export const AuditLogItem: React.FC<AuditLogItemProps> = ({
         </View>
       </View>
 
-      {/* Reproductor de Nota de Voz de expo-audio */}
+      {/* Reproductor de Nota de Voz de expo-audio o Botón de Adjuntar */}
       {item.audioNoteUrl ? (
         <View style={styles.audioBox}>
           <TouchableOpacity
@@ -152,21 +154,47 @@ export const AuditLogItem: React.FC<AuditLogItemProps> = ({
               color="#FFFFFF"
             />
             <Text style={styles.playBtnText}>
-              {status.playing ? 'Pausar Nota' : 'Reproducir Nota de Voz'}
+              {status.playing ? 'Pausar' : 'Reproducir'}
             </Text>
           </TouchableOpacity>
 
-          <View style={styles.audioMeta}>
-            <MaterialIcons name="graphic-eq" size={18} color="#059669" />
-            <Text style={styles.audioMetaText}>
-              {status.playing ? 'Reproduciendo...' : 'Audio adjunto'}
-            </Text>
+          <View style={styles.audioRightGroup}>
+            <View style={styles.audioMeta}>
+              <MaterialIcons name="graphic-eq" size={16} color="#059669" />
+              <Text style={styles.audioMetaText}>
+                {status.playing ? 'Sonando...' : 'Audio'}
+              </Text>
+            </View>
+
+            {onEditAudio && (
+              <TouchableOpacity
+                style={styles.replaceBtn}
+                onPress={() => onEditAudio(item)}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name="edit" size={15} color="#047857" />
+                <Text style={styles.replaceBtnText}>Cambiar</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       ) : (
-        <View style={styles.noAudioRow}>
-          <MaterialIcons name="mic-none" size={15} color="#94A3B8" />
-          <Text style={styles.noAudioText}>Sin nota de voz registrada</Text>
+        <View style={styles.noAudioBox}>
+          <View style={styles.noAudioRow}>
+            <MaterialIcons name="mic-none" size={15} color="#94A3B8" />
+            <Text style={styles.noAudioText}>Sin nota de voz</Text>
+          </View>
+
+          {onEditAudio && (
+            <TouchableOpacity
+              style={styles.attachBtn}
+              onPress={() => onEditAudio(item)}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="add" size={15} color="#2563EB" />
+              <Text style={styles.attachBtnText}>Adjuntar Audio</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>
@@ -279,15 +307,57 @@ const styles = StyleSheet.create({
     color: '#166534',
     fontWeight: '600',
   },
+  audioRightGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  replaceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: '#DCFCE7',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+  },
+  replaceBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#047857',
+  },
+  noAudioBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 4,
+  },
   noAudioRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingTop: 4,
   },
   noAudioText: {
     fontSize: 11,
     color: '#94A3B8',
     fontStyle: 'italic',
+  },
+  attachBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  attachBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#2563EB',
   },
 });

@@ -19,9 +19,9 @@ Asistente digital móvil diseñado para operarios de almacén que permite audita
 | **Catálogo y Búsqueda** | `FlatList` + `SearchBar` | Catálogo de 16 productos con imágenes HTTPS, métricas de stock, precios y filtrado en tiempo real insensible a mayúsculas/minúsculas. |
 | **Escáner de Código de Barras** | `expo-camera` (`CameraView`) | Visor de cámara trasera con mira láser interactiva, control de linterna y vinculación automática al catálogo al decodificar el código de producto. |
 | **Auditoría Georreferenciada** | `expo-location` | Captura automática de latitud y longitud en tiempo real al momento de levantar una auditoría o incidencia. |
-| **Notas de Voz Multimedia** | `expo-audio` | Grabación y reproducción integrada de notas de voz descriptivas asociadas a cada registro de auditoría. |
-| **Bitácora de Movimientos** | `AuditLogItem` + `FlatList` | Historial persistido con formato legible de fecha/hora, estado de acción, coordenadas exactas y reproductor de audio nativo. |
-| **Mapa Interactivo** | `LocationMap` (OpenStreetMap) | Visualización georreferenciada con pines personalizados (🟢 Conteo Normal, 🔴 Incidencia) y tarjeta flotante con información de cada auditoría. |
+| **Notas de Voz Multimedia** | `expo-audio` | Grabación, reproducción, reemplazo y adjunción de notas de voz en registros nuevos y existentes tanto en bitácora como en el mapa. |
+| **Bitácora de Movimientos** | `AuditLogItem` + `FlatList` | Historial persistido con formato legible de fecha/hora, estado de acción, coordenadas exactas, reproductor nativo y botón para cambiar/adjuntar audio. |
+| **Mapa Interactivo** | `LocationMap` (OpenStreetMap) | Visualización georreferenciada con pines semánticos, clusterización inteligente (`markercluster` + espiral spiderfy) y reproductor de audio integrado. |
 | **Estado Global y Persistencia** | `Context API` + `AsyncStorage` | `AuditContext` que preserva y sincroniza los datos entre pestañas y reinicios de la aplicación. |
 | **Navegación por Pestañas** | `expo-router` (`Tabs`) | Estructura modular basada en archivos (`src/app/(tabs)`) con badge numérico en tiempo real en la pestaña de Bitácora. |
 
@@ -32,11 +32,12 @@ Asistente digital móvil diseñado para operarios de almacén que permite audita
 Debido a las recientes políticas de Google Cloud Platform que exigen un depósito obligatorio por adelantado de **$30.00 USD** para activar la consola de facturación y el SDK de Google Maps, se optó por implementar una solución arquitectónica abierta:
 
 - **Componente:** `src/components/LocationMap.tsx`
-- **Tecnología:** **Leaflet.js + OpenStreetMap** embebido mediante `react-native-webview`.
+- **Tecnología:** **Leaflet.js + OpenStreetMap + MarkerCluster** embebido mediante `react-native-webview`.
 - **Beneficios:**
   - **Costo $0.00:** Sin dependencia de tarjetas de crédito ni barreras de facturación de terceros.
   - **100% Funcional en Expo Go:** Soporte multiplataforma garantizado en Android e iOS.
-  - **Cumplimiento Total:** Representación visual con marcadores georreferenciados, interactividad con popups, auto-encuadre (`fitBounds`) y botón de ubicación actual del operario.
+  - **Clusterización Inteligente:** Agrupa pines cercanos o en la misma bodega evitando sobreposiciones y permitiendo expandirlos en espiral (*spiderfy*).
+  - **Cumplimiento Total:** Representación visual con marcadores georreferenciados, interactividad con popups, reproducción de audio directa y botón de ubicación actual del operario.
 
 ---
 
@@ -51,18 +52,19 @@ src/
 │   │   ├── _layout.tsx         # Configuración de pestañas con estilos e iconos
 │   │   ├── index.tsx           # Catálogo de Inventario con búsqueda dinámica
 │   │   ├── scanner.tsx         # Escáner de Código de Barras con cámara
-│   │   ├── audit-log.tsx       # Bitácora de Movimientos y Registro
-│   │   └── map.tsx             # Mapa de Movimientos / Ubicación de Eventos
+│   │   ├── audit-log.tsx       # Bitácora de Movimientos con audio y reemplazo
+│   │   └── map.tsx             # Mapa con clusters y reproductor integrado
 │   ├── _layout.tsx             # Layout raíz con AuditProvider
 │   └── index.tsx               # Redirección a la ruta de pestañas
 ├── components/
 │   ├── ProductCard.tsx         # Tarjeta de producto con indicadores de stock
 │   ├── SearchBar.tsx           # Barra de búsqueda reactiva
 │   ├── CameraScanner.tsx       # Visor de cámara con visor láser y linterna
-│   ├── AuditLogItem.tsx        # Ficha de auditoría con reproductor de audio
-│   ├── LocationMap.tsx         # Mapa interactivo Leaflet / OpenStreetMap
+│   ├── AuditLogItem.tsx        # Ficha de auditoría con audio y cambio de nota
+│   ├── LocationMap.tsx         # Mapa interactivo Leaflet con MarkerCluster
 │   ├── AudioRecorder.tsx       # Grabador de audio con temporizador y preview
-│   └── AuditModal.tsx          # Modal de registro con GPS automático
+│   ├── AuditModal.tsx          # Modal de registro con GPS y audio inteligente
+│   └── UpdateAudioModal.tsx    # Modal para reemplazar o adjuntar audios
 ├── context/
 │   └── AuditContext.tsx        # Estado global y persistencia con AsyncStorage
 ├── data/

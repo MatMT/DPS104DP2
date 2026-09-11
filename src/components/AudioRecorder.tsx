@@ -20,11 +20,17 @@ import {
 interface AudioRecorderProps {
   onAudioRecorded: (uri: string) => void;
   onAudioCleared?: () => void;
+  title?: string;
+  buttonLabel?: string;
+  isIncidence?: boolean;
 }
 
 export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   onAudioRecorded,
   onAudioCleared,
+  title = 'Nota de Voz de Auditoría',
+  buttonLabel = 'Grabar Nota de Voz',
+  isIncidence = false,
 }) => {
   const [recordedUri, setRecordedUri] = useState<string | null>(null);
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
@@ -98,7 +104,9 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Nota de Voz de Auditoría</Text>
+      <Text style={[styles.label, isIncidence && styles.labelIncidence]}>
+        {title}
+      </Text>
 
       {/* Estado: Grabando actualmente */}
       {recorderState.isRecording ? (
@@ -160,13 +168,25 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       ) : (
         /* Estado: Inicial (listo para grabar) */
         <TouchableOpacity
-          style={styles.recordButton}
+          style={[
+            styles.recordButton,
+            isIncidence && styles.recordButtonIncidence,
+          ]}
           onPress={startRecording}
           activeOpacity={0.8}
         >
-          <MaterialIcons name="mic" size={22} color="#2563EB" />
-          <Text style={styles.recordButtonText}>
-            Grabar Nota de Voz de Incidencia
+          <MaterialIcons
+            name="mic"
+            size={22}
+            color={isIncidence ? '#DC2626' : '#2563EB'}
+          />
+          <Text
+            style={[
+              styles.recordButtonText,
+              isIncidence && styles.recordButtonTextIncidence,
+            ]}
+          >
+            {buttonLabel}
           </Text>
         </TouchableOpacity>
       )}
@@ -184,6 +204,9 @@ const styles = StyleSheet.create({
     color: '#475569',
     marginBottom: 8,
   },
+  labelIncidence: {
+    color: '#DC2626',
+  },
   recordButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -197,10 +220,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderStyle: 'dashed',
   },
+  recordButtonIncidence: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FCA5A5',
+  },
   recordButtonText: {
     color: '#2563EB',
     fontWeight: '700',
     fontSize: 14,
+  },
+  recordButtonTextIncidence: {
+    color: '#DC2626',
   },
   recordingBox: {
     backgroundColor: '#FEF2F2',

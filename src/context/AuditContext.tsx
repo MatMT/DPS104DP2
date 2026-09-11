@@ -13,6 +13,7 @@ interface AuditContextType {
   getProductByBarcode: (barcode: string) => Product | undefined;
   getProductById: (id: string) => Product | undefined;
   deleteAuditEntry: (id: string) => Promise<void>;
+  updateAuditAudio: (id: string, audioUrl: string) => Promise<void>;
   clearAuditLogs: () => Promise<void>;
   reloadAuditLogs: () => Promise<void>;
 }
@@ -95,6 +96,18 @@ export const AuditProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const updateAuditAudio = async (id: string, audioUrl: string) => {
+    const updated = auditLogs.map((log) =>
+      log.id === id ? { ...log, audioNoteUrl: audioUrl } : log
+    );
+    setAuditLogs(updated);
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    } catch (error) {
+      console.error('Error al actualizar nota de voz de auditoría:', error);
+    }
+  };
+
   const clearAuditLogs = async () => {
     setAuditLogs([]);
     try {
@@ -118,6 +131,7 @@ export const AuditProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         getProductByBarcode,
         getProductById,
         deleteAuditEntry,
+        updateAuditAudio,
         clearAuditLogs,
         reloadAuditLogs,
       }}

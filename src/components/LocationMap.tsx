@@ -61,7 +61,10 @@ export const LocationMap: React.FC<LocationMapProps> = ({
         <head>
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
           <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+          <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+          <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
           <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+          <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
           <style>
             html, body, #map {
               margin: 0;
@@ -107,6 +110,25 @@ export const LocationMap: React.FC<LocationMapProps> = ({
               border-radius: 4px;
               margin-bottom: 4px;
             }
+            .custom-cluster {
+              background: #0f172a;
+              color: #ffffff;
+              border-radius: 50%;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+              font-weight: 800;
+              font-size: 13px;
+              width: 36px;
+              height: 36px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border: 3px solid #38bdf8;
+              box-shadow: 0 4px 12px rgba(15, 23, 42, 0.35);
+            }
+            .custom-cluster-incidence {
+              border-color: #ef4444;
+              box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+            }
           </style>
         </head>
         <body>
@@ -140,6 +162,28 @@ export const LocationMap: React.FC<LocationMapProps> = ({
               bounds.push([userLoc.lat, userLoc.lon]);
             }
 
+            // Agrupador inteligente de marcadores (Clustering + Spiderfy para puntos cercanos o idénticos)
+            var clusterGroup = L.markerClusterGroup({
+              spiderfyOnMaxZoom: true,
+              showCoverageOnHover: false,
+              zoomToBoundsOnClick: true,
+              maxClusterRadius: 35,
+              iconCreateFunction: function(cluster) {
+                var count = cluster.getChildCount();
+                var children = cluster.getAllChildMarkers();
+                var hasIncidence = children.some(function(m) {
+                  return m.options && m.options.isIncidence;
+                });
+                var extraClass = hasIncidence ? ' custom-cluster-incidence' : '';
+                return L.divIcon({
+                  html: '<div class="custom-cluster' + extraClass + '">' + count + '</div>',
+                  className: 'cluster-wrapper',
+                  iconSize: [36, 36],
+                  iconAnchor: [18, 18]
+                });
+              }
+            });
+
             // Marcadores de las auditorías
             markers.forEach(function(item) {
               var isIncidence = item.actionType === 'INCIDENCE';
@@ -155,7 +199,10 @@ export const LocationMap: React.FC<LocationMapProps> = ({
                 popupAnchor: [0, -26]
               });
 
-              var marker = L.marker([item.lat, item.lon], { icon: customPin }).addTo(map);
+              var marker = L.marker([item.lat, item.lon], {
+                icon: customPin,
+                isIncidence: isIncidence
+              });
               
               var popupHtml = '<div class="custom-popup">' +
                 '<div class="' + badgeClass + '">' + label + '</div>' +
@@ -172,8 +219,11 @@ export const LocationMap: React.FC<LocationMapProps> = ({
                 }
               });
 
+              clusterGroup.addLayer(marker);
               bounds.push([item.lat, item.lon]);
             });
+
+            map.addLayer(clusterGroup);
 
             // Ajustar encuadre si hay múltiples puntos
             if (bounds.length > 1) {

@@ -77,7 +77,7 @@ export const AuditModal: React.FC<AuditModalProps> = ({
     }
   };
 
-  const handleSave = async () => {
+  const executeSave = async () => {
     if (!product) return;
 
     try {
@@ -94,7 +94,7 @@ export const AuditModal: React.FC<AuditModalProps> = ({
 
       Alert.alert(
         '✅ Auditoría Guardada',
-        `Se ha registrado la auditoría para "${product.title}" con coordenadas GPS y nota de voz vinculadas.`,
+        `Se ha registrado la auditoría para "${product.title}" con coordenadas GPS${audioUri ? ' y nota de voz' : ''}.`,
         [
           {
             text: 'Aceptar',
@@ -111,6 +111,22 @@ export const AuditModal: React.FC<AuditModalProps> = ({
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSave = () => {
+    if (actionType === 'INCIDENCE' && !audioUri) {
+      Alert.alert(
+        'Incidencia sin audio',
+        'Estás reportando una incidencia sin adjuntar una nota de voz explicativa. ¿Deseas guardarla así o grabar una nota de voz?',
+        [
+          { text: 'Grabar audio', style: 'cancel' },
+          { text: 'Guardar de todos modos', onPress: executeSave },
+        ]
+      );
+      return;
+    }
+
+    executeSave();
   };
 
   if (!product) return null;
@@ -228,8 +244,19 @@ export const AuditModal: React.FC<AuditModalProps> = ({
               </TouchableOpacity>
             </View>
 
-            {/* Grabador de Audio */}
+            {/* Grabador de Audio - Dinámico según tipo de auditoría */}
             <AudioRecorder
+              title={
+                actionType === 'INCIDENCE'
+                  ? '🎙️ Nota de Voz de la Incidencia (Evidencia de Daño/Faltante)'
+                  : '🎙️ Nota de Voz del Conteo (Opcional)'
+              }
+              buttonLabel={
+                actionType === 'INCIDENCE'
+                  ? 'Grabar Evidencia de la Incidencia'
+                  : 'Grabar Nota de Conteo (Opcional)'
+              }
+              isIncidence={actionType === 'INCIDENCE'}
               onAudioRecorded={(uri) => setAudioUri(uri)}
               onAudioCleared={() => setAudioUri(undefined)}
             />
